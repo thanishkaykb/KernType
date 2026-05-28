@@ -169,7 +169,13 @@ export const useTyping = create<TypingState>()(
           extraTotal,
           errorsTotal,
         });
+
+        // Auto-finish: reached the end of the last word in words mode
+        if (s.mode === "words" && s.wordIndex === s.wordsAmount - 1 && newTyped.length >= target.length) {
+          get().finish();
+        }
       },
+
 
       pushSpace: () => {
         const s = get();
