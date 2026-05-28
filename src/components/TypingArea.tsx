@@ -1,5 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import { motion } from "framer-motion";
+import { useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useTyping } from "@/lib/typing-store";
 
 interface CaretPos { top: number; left: number; height: number; }
@@ -13,40 +12,52 @@ export function TypingArea() {
   const startedAt = useTyping((s) => s.startedAt);
 
   const containerRef = useRef<HTMLDivElement | null>(null);
+  const innerRef = useRef<HTMLDivElement | null>(null);
   const activeCharRef = useRef<HTMLSpanElement | null>(null);
   const activeWordRef = useRef<HTMLSpanElement | null>(null);
   const [caret, setCaret] = useState<CaretPos>({ top: 0, left: 0, height: 28 });
   const [scrollY, setScrollY] = useState(0);
 
-  // Visible window: render only a slice of words around the active one for perf
-  const VISIBLE_AHEAD = 80;
+  // Render a window of words around the active one for performance
+  const VISIBLE_AHEAD = 60;
   const VISIBLE_BEHIND = 20;
   const start = Math.max(0, wordIndex - VISIBLE_BEHIND);
   const end = Math.min(words.length, wordIndex + VISIBLE_AHEAD);
   const slice = useMemo(() => words.slice(start, end), [words, start, end]);
 
-  // Caret + auto-scroll position
-  useEffect(() => {
-    const c = containerRef.current;
-    const target = activeCharRef.current ?? activeWordRef.current;
-    if (!c || !target) return;
-    const cRect = c.getBoundingClientRect();
-    const tRect = target.getBoundingClientRect();
-    let left = tRect.left - cRect.left;
-    if (activeCharRef.current) {
-      // caret on the right edge would only happen if charIndex equals length; we render caret before active char by default
-    }
-    const top = tRect.top - cRect.top + scrollY;
-    setCaret({ top, left, height: tRect.height });
+  // Caret position + line-based scroll. useLayoutEffect to avoid flicker.
+  useLayoutEffect(() => {
+    const inner = innerRef.current;
+    const word = activeWordRef.current;
+    if (!inner || !word) return;
 
-    // Auto-scroll: keep caret on the second line
-    const lineH = tRect.height + 8;
-    const visibleTop = scrollY;
-    const visibleBottom = scrollY + (c.clientHeight || 0);
-    const caretY = top;
-    if (caretY < visibleTop) setScrollY(Math.max(0, caretY - lineH));
-    else if (caretY > visibleBottom - lineH * 1.5) setScrollY(caretY - lineH);
-  }, [wordIndex, charIndex, slice, scrollY]);
+    // Caret position in inner coordinate space (NOT affected by scrollY).
+    const innerRect = inner.getBoundingClientRect();
+    const charEl = activeCharRef.current;
+    let left: number;
+    let top: number;
+    let height: number;
+
+    if (charEl) {
+      const r = charEl.getBoundingClientRect();
+      left = r.left - innerRect.left;
+      top = r.top - innerRect.top;
+      height = r.height;
+    } else {
+      // Past the end of the word: place caret right after last char
+      const wRect = word.getBoundingClientRect();
+      left = wRect.right - innerRect.left;
+      top = wRect.top - innerRect.top;
+      height = wRect.height;
+    }
+    setCaret({ top, left, height });
+
+    // Line-based scroll: keep the active line on the 2nd visible line.
+    const lineHeight = word.offsetHeight + 8; // gap-y-2 ~ 8px
+    const wordTop = word.offsetTop;
+    const targetScroll = Math.max(0, wordTop - lineHeight);
+    setScrollY(targetScroll);
+  }, [wordIndex, charIndex, slice]);
 
   return (
     <div
@@ -56,8 +67,12 @@ export function TypingArea() {
       aria-label="Typing area"
     >
       <div
-        className="will-change-transform transition-transform duration-150 ease-out"
-        style={{ transform: `translateY(${-scrollY}px)` }}
+        ref={innerRef}
+        className="will-change-transform"
+        style={{
+          transform: `translate3d(0, ${-scrollY}px, 0)`,
+          transition: "transform 120ms cubic-bezier(.22,1,.36,1)",
+        }}
       >
         <div className="flex flex-wrap gap-x-3 gap-y-2">
           {slice.map((w, i) => {
@@ -71,7 +86,7 @@ export function TypingArea() {
               <span
                 key={realIndex}
                 ref={isActive ? activeWordRef : undefined}
-                className={`relative inline-flex ${isActive ? "text-foreground" : ""}`}
+                className="relative inline-flex"
               >
                 {Array.from({ length: len }).map((_, j) => {
                   const tch = target[j];
@@ -88,7 +103,7 @@ export function TypingArea() {
                   return (
                     <span
                       key={j}
-                      ref={isCaretHere ? activeCharRef : undefined}
+                      ref={isCaretHere ? activeCharRef : null}
                       className={cls}
                     >
                       {tch ?? uch}
@@ -101,14 +116,18 @@ export function TypingArea() {
         </div>
       </div>
 
-      {/* Smooth caret */}
+      {/* Smooth caret — pure CSS transform for low latency */}
       {!finishedAt && (
-        <motion.div
+        <div
           aria-hidden
-          className={`pointer-events-none absolute w-[2px] rounded-sm bg-[var(--caret)] ${startedAt ? "" : "caret-blink"}`}
-          animate={{ top: caret.top - scrollY - 2, left: caret.left - 1, height: caret.height + 4 }}
-          transition={{ type: "spring", stiffness: 900, damping: 60, mass: 0.4 }}
-          style={{ boxShadow: "0 0 14px color-mix(in oklab, var(--caret) 60%, transparent)" }}
+          className={`pointer-events-none absolute top-0 left-0 w-[2px] rounded-sm bg-[var(--caret)] ${startedAt ? "" : "caret-blink"}`}
+          style={{
+            height: caret.height + 4,
+            transform: `translate3d(${caret.left - 1}px, ${caret.top - scrollY - 2}px, 0)`,
+            transition: "transform 60ms linear, height 80ms ease",
+            boxShadow: "0 0 12px color-mix(in oklab, var(--caret) 55%, transparent)",
+            willChange: "transform",
+          }}
         />
       )}
     </div>
