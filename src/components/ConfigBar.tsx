@@ -3,6 +3,7 @@ import { AtSign, Hash, Eye, EyeOff, Sparkles, Clock, Type, Quote } from "lucide-
 
 const TIME_OPTIONS = [15, 30, 60, 120];
 const WORD_OPTIONS = [10, 25, 50, 100];
+const QUOTE_OPTIONS = [10, 15, 20, 25, 30];
 
 function Pill({
   active,
