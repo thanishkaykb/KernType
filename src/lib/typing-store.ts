@@ -1,8 +1,8 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { generateWords } from "./words";
+import { generateWords, generateQuote } from "./words";
 
-export type Mode = "time" | "words";
+export type Mode = "time" | "words" | "quote";
 export type CharState = "untyped" | "correct" | "incorrect" | "extra";
 
 export interface WordState {
@@ -40,6 +40,7 @@ interface Settings {
   mode: Mode;
   timeAmount: number;        // seconds
   wordsAmount: number;       // count
+  quoteAmount: number;       // approx words in quote
   punctuation: boolean;
   numbers: boolean;
   soundEnabled: boolean;
@@ -74,7 +75,11 @@ interface TypingState extends Settings {
   finish: () => void;
 }
 
-function buildWords(s: Pick<Settings, "mode" | "timeAmount" | "wordsAmount" | "punctuation" | "numbers">): WordState[] {
+function buildWords(s: Pick<Settings, "mode" | "timeAmount" | "wordsAmount" | "quoteAmount" | "punctuation" | "numbers">): WordState[] {
+  if (s.mode === "quote") {
+    const { words } = generateQuote(s.quoteAmount);
+    return words.map((w) => ({ target: w, typed: "" }));
+  }
   // For time mode we generate a generous buffer; we'll extend as user types.
   const count = s.mode === "words" ? s.wordsAmount : Math.max(80, s.timeAmount * 5);
   return generateWords({ count, punctuation: s.punctuation, numbers: s.numbers }).map((w) => ({
@@ -89,6 +94,7 @@ export const useTyping = create<TypingState>()(
       mode: "time",
       timeAmount: 30,
       wordsAmount: 25,
+      quoteAmount: 15,
       punctuation: false,
       numbers: false,
       soundEnabled: false,
