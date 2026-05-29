@@ -8,8 +8,8 @@ export function LiveStats() {
   const mode = useTyping((s) => s.mode);
   const timeAmount = useTyping((s) => s.timeAmount);
   const wordsAmount = useTyping((s) => s.wordsAmount);
-  const quoteAmount = useTyping((s) => s.quoteAmount);
   const totalWords = useTyping((s) => s.words.length);
+  const wordIndex = useTyping((s) => s.wordIndex);
   const zen = useTyping((s) => s.zenMode);
   const [now, setNow] = useState<number>(performance.now());
 
@@ -30,17 +30,17 @@ export function LiveStats() {
 
   if (zen) return <div className="h-6" />;
 
+  const total = mode === "words" ? wordsAmount : totalWords;
+
   return (
     <div className="flex items-center gap-6 font-mono text-sm text-muted-foreground h-6">
       {mode === "time" ? (
         <span className="text-primary text-base tabular-nums">{Math.ceil(remaining)}s</span>
       ) : (
-        <span className="text-primary text-base tabular-nums">{Math.min(wordIndex, wordsAmount)}/{wordsAmount}</span>
+        <span className="text-primary text-base tabular-nums">{Math.min(wordIndex, total)}/{total}</span>
       )}
       {startedAt && !finishedAt && (
-        <>
-          <span className="tabular-nums"><span className="text-foreground/80">{wpm}</span> wpm</span>
-        </>
+        <span className="tabular-nums"><span className="text-foreground/80">{wpm}</span> wpm</span>
       )}
     </div>
   );
