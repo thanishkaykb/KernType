@@ -90,7 +90,6 @@ export function ConfigBar() {
           </Pill>
         ))}
       <Divider />
-      <Divider />
       <Pill active={blind} onClick={() => setSettings({ blindMode: !blind })} title="Blind mode">
         {blind ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
       </Pill>

@@ -8,7 +8,8 @@ export function LiveStats() {
   const mode = useTyping((s) => s.mode);
   const timeAmount = useTyping((s) => s.timeAmount);
   const wordsAmount = useTyping((s) => s.wordsAmount);
-  const wordIndex = useTyping((s) => s.wordIndex);
+  const quoteAmount = useTyping((s) => s.quoteAmount);
+  const totalWords = useTyping((s) => s.words.length);
   const zen = useTyping((s) => s.zenMode);
   const [now, setNow] = useState<number>(performance.now());
 
