@@ -62,7 +62,7 @@ export function TypingArea() {
   return (
     <div
       ref={containerRef}
-      className="relative w-full max-w-5xl mx-auto h-[180px] md:h-[200px] overflow-hidden font-mono text-2xl md:text-3xl leading-relaxed select-none"
+      className="relative w-full max-w-[1100px] mx-auto h-[168px] md:h-[192px] overflow-hidden font-mono text-[1.6rem] md:text-[2rem] leading-[3rem] tracking-tight select-none"
       style={{ filter: blindMode ? "blur(2px)" : undefined }}
       aria-label="Typing area"
     >
@@ -71,10 +71,10 @@ export function TypingArea() {
         className="will-change-transform"
         style={{
           transform: `translate3d(0, ${-scrollY}px, 0)`,
-          transition: "transform 120ms cubic-bezier(.22,1,.36,1)",
+          transition: "transform 140ms cubic-bezier(.22,1,.36,1)",
         }}
       >
-        <div className="flex flex-wrap gap-x-3 gap-y-2">
+        <div className="flex flex-wrap gap-x-4 gap-y-1">
           {slice.map((w, i) => {
             const realIndex = start + i;
             const isActive = realIndex === wordIndex;
