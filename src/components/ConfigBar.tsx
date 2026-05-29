@@ -3,6 +3,7 @@ import { AtSign, Hash, Eye, EyeOff, Sparkles, Clock, Type, Quote } from "lucide-
 
 const TIME_OPTIONS = [15, 30, 60, 120];
 const WORD_OPTIONS = [10, 25, 50, 100];
+const QUOTE_OPTIONS = [10, 15, 20, 25, 30];
 
 function Pill({
   active,
@@ -36,6 +37,7 @@ export function ConfigBar() {
   const mode = useTyping((s) => s.mode);
   const timeAmount = useTyping((s) => s.timeAmount);
   const wordsAmount = useTyping((s) => s.wordsAmount);
+  const quoteAmount = useTyping((s) => s.quoteAmount);
   const punctuation = useTyping((s) => s.punctuation);
   const numbers = useTyping((s) => s.numbers);
   const blind = useTyping((s) => s.blindMode);
@@ -62,21 +64,31 @@ export function ConfigBar() {
       <Pill active={mode === "words"} onClick={() => setSettings({ mode: "words" as Mode })}>
         <Type className="w-3.5 h-3.5" />words
       </Pill>
+      <Pill active={mode === "quote"} onClick={() => setSettings({ mode: "quote" as Mode })} title="Random quote">
+        <Quote className="w-3.5 h-3.5" />quote
+      </Pill>
       <Pill active={zen} onClick={() => setSettings({ zenMode: !zen })} title="Zen mode">
-        <Quote className="w-3.5 h-3.5" />zen
+        <Sparkles className="w-3.5 h-3.5" />zen
       </Pill>
       <Divider />
-      {mode === "time"
-        ? TIME_OPTIONS.map((n) => (
-            <Pill key={n} active={timeAmount === n} onClick={() => setSettings({ timeAmount: n })}>
-              {n}
-            </Pill>
-          ))
-        : WORD_OPTIONS.map((n) => (
-            <Pill key={n} active={wordsAmount === n} onClick={() => setSettings({ wordsAmount: n })}>
-              {n}
-            </Pill>
-          ))}
+      {mode === "time" &&
+        TIME_OPTIONS.map((n) => (
+          <Pill key={n} active={timeAmount === n} onClick={() => setSettings({ timeAmount: n })}>
+            {n}
+          </Pill>
+        ))}
+      {mode === "words" &&
+        WORD_OPTIONS.map((n) => (
+          <Pill key={n} active={wordsAmount === n} onClick={() => setSettings({ wordsAmount: n })}>
+            {n}
+          </Pill>
+        ))}
+      {mode === "quote" &&
+        QUOTE_OPTIONS.map((n) => (
+          <Pill key={n} active={quoteAmount === n} onClick={() => setSettings({ quoteAmount: n })}>
+            {n}w
+          </Pill>
+        ))}
       <Divider />
       <Pill active={blind} onClick={() => setSettings({ blindMode: !blind })} title="Blind mode">
         {blind ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}

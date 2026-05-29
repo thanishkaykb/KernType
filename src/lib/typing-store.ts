@@ -1,8 +1,8 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { generateWords } from "./words";
+import { generateWords, generateQuote } from "./words";
 
-export type Mode = "time" | "words";
+export type Mode = "time" | "words" | "quote";
 export type CharState = "untyped" | "correct" | "incorrect" | "extra";
 
 export interface WordState {
@@ -40,6 +40,7 @@ interface Settings {
   mode: Mode;
   timeAmount: number;        // seconds
   wordsAmount: number;       // count
+  quoteAmount: number;       // approx words in quote
   punctuation: boolean;
   numbers: boolean;
   soundEnabled: boolean;
@@ -74,7 +75,11 @@ interface TypingState extends Settings {
   finish: () => void;
 }
 
-function buildWords(s: Pick<Settings, "mode" | "timeAmount" | "wordsAmount" | "punctuation" | "numbers">): WordState[] {
+function buildWords(s: Pick<Settings, "mode" | "timeAmount" | "wordsAmount" | "quoteAmount" | "punctuation" | "numbers">): WordState[] {
+  if (s.mode === "quote") {
+    const { words } = generateQuote(s.quoteAmount);
+    return words.map((w) => ({ target: w, typed: "" }));
+  }
   // For time mode we generate a generous buffer; we'll extend as user types.
   const count = s.mode === "words" ? s.wordsAmount : Math.max(80, s.timeAmount * 5);
   return generateWords({ count, punctuation: s.punctuation, numbers: s.numbers }).map((w) => ({
@@ -89,6 +94,7 @@ export const useTyping = create<TypingState>()(
       mode: "time",
       timeAmount: 30,
       wordsAmount: 25,
+      quoteAmount: 15,
       punctuation: false,
       numbers: false,
       soundEnabled: false,
@@ -171,7 +177,8 @@ export const useTyping = create<TypingState>()(
         });
 
         // Auto-finish: reached the end of the last word in words mode
-        if (s.mode === "words" && s.wordIndex === s.wordsAmount - 1 && newTyped.length >= target.length) {
+        const lastWordIdx = s.mode === "words" ? s.wordsAmount - 1 : s.mode === "quote" ? s.words.length - 1 : -1;
+        if (lastWordIdx >= 0 && s.wordIndex === lastWordIdx && newTyped.length >= target.length) {
           get().finish();
         }
       },
@@ -198,6 +205,8 @@ export const useTyping = create<TypingState>()(
         set({ words, wordIndex: nextIndex, charIndex: 0 });
 
         if (s.mode === "words" && nextIndex >= s.wordsAmount) {
+          get().finish();
+        } else if (s.mode === "quote" && nextIndex >= s.words.length) {
           get().finish();
         }
       },
@@ -273,7 +282,7 @@ export const useTyping = create<TypingState>()(
         let incorrectChars = 0;
         let extraChars = 0;
         let missedChars = 0;
-        const lastIndex = s.mode === "words" ? s.wordsAmount - 1 : s.wordIndex;
+        const lastIndex = s.mode === "words" ? s.wordsAmount - 1 : s.mode === "quote" ? s.words.length - 1 : s.wordIndex;
         for (let i = 0; i <= lastIndex && i < s.words.length; i++) {
           const w = s.words[i];
           const minLen = Math.min(w.typed.length, w.target.length);
@@ -314,7 +323,7 @@ export const useTyping = create<TypingState>()(
           missedChars,
           durationSec: Math.round(elapsed * 10) / 10,
           mode: s.mode,
-          amount: s.mode === "time" ? s.timeAmount : s.wordsAmount,
+          amount: s.mode === "time" ? s.timeAmount : s.mode === "quote" ? s.quoteAmount : s.wordsAmount,
           punctuation: s.punctuation,
           numbers: s.numbers,
           samples: s.samples,
@@ -336,6 +345,7 @@ export const useTyping = create<TypingState>()(
         mode: s.mode,
         timeAmount: s.timeAmount,
         wordsAmount: s.wordsAmount,
+        quoteAmount: s.quoteAmount,
         punctuation: s.punctuation,
         numbers: s.numbers,
         soundEnabled: s.soundEnabled,

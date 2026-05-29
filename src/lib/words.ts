@@ -68,3 +68,44 @@ export function generateWords({ count, punctuation = false, numbers = false }: G
   }
   return out;
 }
+
+// ---------- Quotes ----------
+export const QUOTES: string[] = [
+  "The only way to do great work is to love what you do and never settle for less than your best.",
+  "In the middle of every difficulty lies an opportunity waiting to be discovered by those who dare to look.",
+  "Success is not final, failure is not fatal: it is the courage to continue that truly counts in the end.",
+  "We used to look at the stars and confess our dreams, hold each other till the morning light returned.",
+  "The future belongs to those who believe in the beauty of their dreams and chase them with relentless passion.",
+  "Life is what happens when you are busy making other plans for the days you think will never end.",
+  "Do not go where the path may lead, go instead where there is no path and leave a trail.",
+  "The mind is everything; what you think, you slowly become over the long quiet years of a single life.",
+  "If you want to live a happy life, tie it to a goal, not to people or to things.",
+  "The best way to predict the future is to invent it yourself with the small choices you make today.",
+  "It always seems impossible until it is done by someone brave enough to begin without the promise of success.",
+  "A journey of a thousand miles begins with a single step taken in the right direction at the right time.",
+  "Be the change that you wish to see in the world around you, starting with the person in the mirror.",
+  "Happiness is not something ready made; it comes from your own actions and the quiet choices of each day.",
+  "What we think, we become; what we feel, we attract; what we imagine, we slowly create with our hands.",
+  "The only impossible journey is the one you never begin, no matter how distant the destination may seem now.",
+  "Believe you can and you are already halfway there to becoming the person you were always meant to be.",
+  "Whether you think you can or you think you cannot, you are absolutely right about the outcome you expect.",
+  "Quality is not an act, it is a habit formed by small deliberate choices repeated over many ordinary days.",
+  "The two most important days in your life are the day you are born and the day you find out why.",
+  "Do what you can with what you have where you are right now, and the rest will follow in time.",
+  "Everything you have ever wanted is sitting on the other side of fear, waiting patiently for you to arrive.",
+  "Stay hungry, stay foolish, and never let the noise of others drown out your own inner voice or vision.",
+  "The harder you work for something, the greater you will feel when you finally achieve it after long effort.",
+  "Dream big, start small, but most of all, start now and do not wait for a perfect moment that never arrives.",
+];
+
+export function generateQuote(approxWords: number): { words: string[]; source: string } {
+  // Pick quotes whose word count is closest to the target, then random within top matches.
+  const ranked = QUOTES
+    .map((q) => ({ q, count: q.split(/\s+/).length }))
+    .sort((a, b) => Math.abs(a.count - approxWords) - Math.abs(b.count - approxWords));
+  const pool = ranked.slice(0, 5);
+  const pick = pool[Math.floor(Math.random() * pool.length)].q;
+  const all = pick.split(/\s+/);
+  const words = all.slice(0, approxWords);
+  return { words, source: pick };
+}
