@@ -324,7 +324,7 @@ export const useTyping = create<TypingState>()(
           missedChars,
           durationSec: Math.round(elapsed * 10) / 10,
           mode: s.mode,
-          amount: s.mode === "time" ? s.timeAmount : s.mode === "quote" ? s.quoteAmount : s.wordsAmount,
+          amount: s.mode === "time" ? s.timeAmount : s.mode === "quote" ? s.quoteCategory : s.wordsAmount,
           punctuation: s.punctuation,
           numbers: s.numbers,
           samples: s.samples,
