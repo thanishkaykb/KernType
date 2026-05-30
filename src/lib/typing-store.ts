@@ -64,7 +64,7 @@ interface TypingState extends Settings {
   extraTotal: number;
   samples: Sample[];
   result: Result | null;
-  personalBest: { wpm: number; mode: Mode; amount: number } | null;
+  personalBest: { wpm: number; mode: Mode; amount: number | string } | null;
 
   // actions
   setSettings: (s: Partial<Settings>) => void;
