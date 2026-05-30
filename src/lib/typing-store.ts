@@ -346,7 +346,7 @@ export const useTyping = create<TypingState>()(
         mode: s.mode,
         timeAmount: s.timeAmount,
         wordsAmount: s.wordsAmount,
-        quoteAmount: s.quoteAmount,
+        quoteCategory: s.quoteCategory,
         punctuation: s.punctuation,
         numbers: s.numbers,
         soundEnabled: s.soundEnabled,
