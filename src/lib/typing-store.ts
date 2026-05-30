@@ -30,7 +30,7 @@ export interface Result {
   missedChars: number;
   durationSec: number;
   mode: Mode;
-  amount: number;
+  amount: number | string;
   punctuation: boolean;
   numbers: boolean;
   samples: Sample[];
@@ -41,7 +41,7 @@ interface Settings {
   mode: Mode;
   timeAmount: number;        // seconds
   wordsAmount: number;       // count
-  quoteAmount: number;       // approx words in quote
+  quoteCategory: QuoteCategory; // all|short|medium|long|thicc
   punctuation: boolean;
   numbers: boolean;
   soundEnabled: boolean;
