@@ -76,9 +76,9 @@ interface TypingState extends Settings {
   finish: () => void;
 }
 
-function buildWords(s: Pick<Settings, "mode" | "timeAmount" | "wordsAmount" | "quoteAmount" | "punctuation" | "numbers">): WordState[] {
+function buildWords(s: Pick<Settings, "mode" | "timeAmount" | "wordsAmount" | "quoteCategory" | "punctuation" | "numbers">): WordState[] {
   if (s.mode === "quote") {
-    const { words } = generateQuote(s.quoteAmount);
+    const { words } = generateQuote(s.quoteCategory);
     return words.map((w) => ({ target: w, typed: "" }));
   }
   // For time mode we generate a generous buffer; we'll extend as user types.
@@ -95,7 +95,7 @@ export const useTyping = create<TypingState>()(
       mode: "time",
       timeAmount: 30,
       wordsAmount: 25,
-      quoteAmount: 15,
+      quoteCategory: "medium" as QuoteCategory,
       punctuation: false,
       numbers: false,
       soundEnabled: false,
