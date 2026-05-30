@@ -1,8 +1,9 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { generateWords, generateQuote } from "./words";
+import { generateWords, generateQuote, type QuoteCategory } from "./words";
 
 export type Mode = "time" | "words" | "quote";
+export type { QuoteCategory };
 export type CharState = "untyped" | "correct" | "incorrect" | "extra";
 
 export interface WordState {
