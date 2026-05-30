@@ -72,9 +72,19 @@ function Home() {
               <ConfigBar />
               <LiveStats />
               <TypingArea />
-              <p className="text-xs font-mono text-muted-foreground/70">
-                press <kbd className="px-1.5 py-0.5 rounded bg-muted text-foreground/80">tab</kbd> to restart · just start typing
-              </p>
+              <div className="flex flex-col items-center gap-8 mt-12">
+                <button
+                  onClick={restart}
+                  title="New test"
+                  aria-label="New test"
+                  className="text-muted-foreground/70 hover:text-primary transition-colors p-2"
+                >
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>
+                </button>
+                <p className="text-xs font-mono text-muted-foreground/60">
+                  press <kbd className="px-1.5 py-0.5 rounded bg-muted text-foreground/80">tab</kbd> for a new test · just start typing
+                </p>
+              </div>
             </motion.div>
           ) : (
             <motion.div

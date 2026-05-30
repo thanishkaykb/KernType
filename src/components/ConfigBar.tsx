@@ -1,9 +1,9 @@
-import { useTyping, type Mode } from "@/lib/typing-store";
+import { useTyping, type Mode, type QuoteCategory } from "@/lib/typing-store";
 import { AtSign, Hash, Eye, EyeOff, Sparkles, Clock, Type, Quote } from "lucide-react";
 
 const TIME_OPTIONS = [15, 30, 60, 120];
 const WORD_OPTIONS = [10, 25, 50, 100];
-const QUOTE_OPTIONS = [10, 15, 20, 25, 30];
+const QUOTE_OPTIONS: QuoteCategory[] = ["all", "short", "medium", "long", "thicc"];
 
 function Pill({
   active,
@@ -37,7 +37,7 @@ export function ConfigBar() {
   const mode = useTyping((s) => s.mode);
   const timeAmount = useTyping((s) => s.timeAmount);
   const wordsAmount = useTyping((s) => s.wordsAmount);
-  const quoteAmount = useTyping((s) => s.quoteAmount);
+  const quoteCategory = useTyping((s) => s.quoteCategory);
   const punctuation = useTyping((s) => s.punctuation);
   const numbers = useTyping((s) => s.numbers);
   const blind = useTyping((s) => s.blindMode);
@@ -46,7 +46,6 @@ export function ConfigBar() {
   const startedAt = useTyping((s) => s.startedAt);
   const finishedAt = useTyping((s) => s.finishedAt);
 
-  // Hide during active session for distraction-free typing
   if (startedAt && !finishedAt) return <div className="h-9" />;
 
   return (
@@ -84,9 +83,9 @@ export function ConfigBar() {
           </Pill>
         ))}
       {mode === "quote" &&
-        QUOTE_OPTIONS.map((n) => (
-          <Pill key={n} active={quoteAmount === n} onClick={() => setSettings({ quoteAmount: n })}>
-            {n}w
+        QUOTE_OPTIONS.map((c) => (
+          <Pill key={c} active={quoteCategory === c} onClick={() => setSettings({ quoteCategory: c })}>
+            {c}
           </Pill>
         ))}
       <Divider />

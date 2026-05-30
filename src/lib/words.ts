@@ -51,13 +51,21 @@ export interface GenerateOptions {
 
 export function generateWords({ count, punctuation = false, numbers = false }: GenerateOptions): string[] {
   const out: string[] = [];
+  const recent: string[] = [];
+  const WINDOW = 8;
   let capitalizeNext = punctuation;
   for (let i = 0; i < count; i++) {
     if (numbers && maybe(0.08)) {
       out.push(randomNumber());
       continue;
     }
-    const base = rand(ALPHA_WORDS);
+    let base = rand(ALPHA_WORDS);
+    // avoid immediate repeats within a small sliding window
+    let guard = 0;
+    while (recent.includes(base) && guard++ < 10) base = rand(ALPHA_WORDS);
+    recent.push(base);
+    if (recent.length > WINDOW) recent.shift();
+
     if (punctuation) {
       const w = withPunctuation(base, capitalizeNext);
       capitalizeNext = /[.!?]$/.test(w);
@@ -70,42 +78,136 @@ export function generateWords({ count, punctuation = false, numbers = false }: G
 }
 
 // ---------- Quotes ----------
-export const QUOTES: string[] = [
-  "The only way to do great work is to love what you do and never settle for less than your best.",
-  "In the middle of every difficulty lies an opportunity waiting to be discovered by those who dare to look.",
-  "Success is not final, failure is not fatal: it is the courage to continue that truly counts in the end.",
-  "We used to look at the stars and confess our dreams, hold each other till the morning light returned.",
-  "The future belongs to those who believe in the beauty of their dreams and chase them with relentless passion.",
-  "Life is what happens when you are busy making other plans for the days you think will never end.",
-  "Do not go where the path may lead, go instead where there is no path and leave a trail.",
-  "The mind is everything; what you think, you slowly become over the long quiet years of a single life.",
-  "If you want to live a happy life, tie it to a goal, not to people or to things.",
-  "The best way to predict the future is to invent it yourself with the small choices you make today.",
-  "It always seems impossible until it is done by someone brave enough to begin without the promise of success.",
-  "A journey of a thousand miles begins with a single step taken in the right direction at the right time.",
-  "Be the change that you wish to see in the world around you, starting with the person in the mirror.",
-  "Happiness is not something ready made; it comes from your own actions and the quiet choices of each day.",
-  "What we think, we become; what we feel, we attract; what we imagine, we slowly create with our hands.",
-  "The only impossible journey is the one you never begin, no matter how distant the destination may seem now.",
-  "Believe you can and you are already halfway there to becoming the person you were always meant to be.",
-  "Whether you think you can or you think you cannot, you are absolutely right about the outcome you expect.",
-  "Quality is not an act, it is a habit formed by small deliberate choices repeated over many ordinary days.",
-  "The two most important days in your life are the day you are born and the day you find out why.",
-  "Do what you can with what you have where you are right now, and the rest will follow in time.",
-  "Everything you have ever wanted is sitting on the other side of fear, waiting patiently for you to arrive.",
-  "Stay hungry, stay foolish, and never let the noise of others drown out your own inner voice or vision.",
-  "The harder you work for something, the greater you will feel when you finally achieve it after long effort.",
-  "Dream big, start small, but most of all, start now and do not wait for a perfect moment that never arrives.",
+// All quotes are original sentences written for this project (no third-party text).
+// Length categories follow Monkeytype's convention: short / medium / long / thicc.
+export type QuoteCategory = "all" | "short" | "medium" | "long" | "thicc";
+
+const SHORT_QUOTES: string[] = [
+  "A calm mind types faster than an anxious one and lasts much longer.",
+  "Practice does not make perfect; honest practice makes you a little better.",
+  "Smooth keystrokes come from breath, not from clenched and aching fingers.",
+  "Speed is a side effect of accuracy, not the other way around at all.",
+  "Read the next word before your hands have finished the current one.",
+  "Rest the wrists, soften the shoulders, then let the rhythm carry you forward.",
+  "A clean room is a clean mind, and a clean mind types clean code.",
+  "Mistakes are simply notes; learn from them and they will quietly disappear.",
+  "Begin slowly, end smoothly, and the timer will surprise you in good ways.",
+  "Type the word you see, not the word you expected to see there.",
+  "Patience builds the floor your speed will later stand on without shaking.",
+  "Confidence at the keyboard is built by tiny wins repeated every quiet morning.",
+  "Tense fingers hit wrong keys; relaxed fingers find the right ones naturally.",
+  "Every test is just a snapshot, not a verdict on who you are.",
+  "Eyes ahead, hands behind, and the words will appear before you ask.",
+  "Slow is smooth, and smooth becomes fast when nobody is watching the clock.",
+  "Mind the gaps between words; the spaces are part of the rhythm too.",
+  "Posture comes first, then your hands, then the words you decide to chase.",
+  "Looking at the keys is the longest possible way from here to there.",
+  "Warm up your fingers before warming up your ego at the keyboard today.",
+  "A good chair is worth a hundred lessons in proper typing technique.",
+  "If a word breaks you, walk through it letter by letter until it bends.",
+  "Trust the muscle memory; the brain is only there to choose the words.",
+  "Take pride in the boring parts; that is where real speed quietly hides.",
+  "Loud keys do not type faster, they only annoy the people around you.",
+  "When you slow down on hard words, you save the time you would lose recovering.",
+  "Comfort first, accuracy second, and let raw speed find you on its own.",
+  "Type with the whole hand, not with the index fingers of a tourist.",
+  "Small daily reps beat one heroic session you will never repeat again.",
+  "The keyboard rewards consistency the way a garden rewards a patient gardener.",
+  "Forget the leaderboard for a week and notice how much your typing improves.",
+  "If your shoulders are at your ears, your fingers cannot truly be free.",
+  "Read in chunks of three or four words and the rhythm will follow.",
+  "A clean restart is better than a messy push through a broken word.",
+  "Soft hands, soft keys, soft mistakes; nothing about this needs to be hard.",
+  "The right word at the right tempo feels better than the fastest one.",
+  "Look once, type once, and trust that your fingers were paying attention.",
+  "Errors are feedback, not failure, and feedback is the only way you improve.",
+  "Find your own pace before you try to chase someone else's record.",
+  "A test ends in a minute; the habits you build will outlast everything.",
 ];
 
-export function generateQuote(approxWords: number): { words: string[]; source: string } {
-  // Pick quotes whose word count is closest to the target, then random within top matches.
-  const ranked = QUOTES
-    .map((q) => ({ q, count: q.split(/\s+/).length }))
-    .sort((a, b) => Math.abs(a.count - approxWords) - Math.abs(b.count - approxWords));
-  const pool = ranked.slice(0, 5);
-  const pick = pool[Math.floor(Math.random() * pool.length)].q;
-  const all = pick.split(/\s+/);
-  const words = all.slice(0, approxWords);
-  return { words, source: pick };
+const MEDIUM_QUOTES: string[] = [
+  "There is a strange comfort in the steady click of a keyboard on a quiet evening; it feels like work and rest at the same time, two halves of the same calm afternoon.",
+  "Typing is less about your fingers than about your eyes; once you learn to read a little further ahead than you write, the hands always seem to know exactly what to do next.",
+  "Most people try to type faster by hurrying their hands, but the secret is to slow the thinking down until each word feels obvious before your fingers ever touch a key.",
+  "The keyboard does not care how tired you are, how late it is, or how badly the last test went; it only responds to the next keystroke, and that is honestly a kind of mercy.",
+  "Speed is a strange thing to chase; the harder you grab for it the more it slips away, and the more you ignore it the more it seems to sit quietly beside you the entire time.",
+  "Every typist eventually discovers the same boring truth: the road to a hundred words a minute is paved with thousands of small corrections you barely noticed at the time.",
+  "If you only practice the words that already feel comfortable, you will only ever be comfortable at the speed you are at right now, never one keystroke beyond it.",
+  "There is a difference between typing quickly and typing well, and after enough hours at a keyboard you start to prefer the second one even when nobody else can tell.",
+  "The best part of a typing test is the moment right before it starts, when the cursor blinks and nothing has gone wrong yet and every word still seems possible.",
+  "Accuracy is the quiet foundation under every fast typist; lose it for a single test and you will spend the next ten trying to find your rhythm again from scratch.",
+  "When the fingers are loose and the mind is calm, words come through the keyboard the way water comes through a tap, one steady stream with no thought behind it.",
+  "It is strange how much your typing changes with your mood; a worried hour can cost you fifteen words a minute, and a cheerful one can give them straight back.",
+  "Stop trying to win every test; some sessions are meant to be lost, examined, forgiven, and quietly used as the ground on which the next better session will stand.",
+  "A good typing habit is built the same way a good morning is built: with small kind choices repeated until they become so ordinary you forget you ever had to choose.",
+  "There is a particular satisfaction in finishing a long passage cleanly, no backspaces, no panic, no scrambled fingers, just a quiet ending and a number you can be proud of.",
+  "Children learn to type by hammering one key at a time; the rest of us forget that beginnings are allowed to be slow, and we punish ourselves for not being instantly graceful.",
+  "Try this experiment: take a familiar paragraph and type it at half your usual speed with perfect accuracy; you will probably find that half speed is still faster than you expected.",
+  "Your hands have been learning to type since the first time you touched a phone; trust them a little more, watch them a little less, and the words will arrive much sooner.",
+  "The strange thing about repetition is that it is never really repetition; the tenth time you type a sentence is built on lessons the first nine could not possibly have known.",
+  "If you want to type smoothly under pressure, practice typing smoothly without pressure first; the body cannot perform on stage what it has not rehearsed in private many quiet times.",
+  "Most typing mistakes happen a moment before the keys are pressed, in the small flicker where attention slips; bring the attention back and the fingers will follow it home.",
+  "The keyboard is a mirror; if your day has been chaotic, your typing will be chaotic too, and there is no real point in pretending the two things are unrelated to each other.",
+  "Learning to type without looking is one of those small adult skills that feels useless until the moment it becomes essential, and then you wonder how you ever lived without it.",
+  "A good typist is not someone who never makes mistakes, but someone who has learned to keep moving forward when a mistake quietly happens behind them on the line above.",
+  "Set a timer for five minutes and type something you actually care about; the test stops being a test and quietly becomes the only kind of practice that ever really sticks.",
+  "There is a kind of grace in hitting the space bar with the right thumb at exactly the right moment, a small invisible discipline that holds entire paragraphs together for you.",
+];
+
+const LONG_QUOTES: string[] = [
+  "When I first started timing my typing tests I treated every result like an exam grade, and the numbers ruled my afternoons; a good one made me cheerful for an hour, a bad one made the rest of the day feel a little dimmer than it had any right to be. It took an embarrassingly long time to realise that the number on the screen was not really me, and that the only useful measurement was whether I felt slightly more in control of the keyboard than I had the day before. Once I let go of the score, the score quietly went up on its own, which was both annoying and a little funny in the way most lessons about effort eventually turn out to be in the end.",
+  "There is a particular kind of evening, usually somewhere around the middle of the week, when the apartment is quiet and the lamp is on and nothing in particular needs to be done; on those evenings I sit down at the keyboard not to practice or to improve but simply to type, the way other people might pick up a guitar or shuffle a deck of cards. The words do not need to be important and the test does not need to be won; there is just the soft sound of the keys, the rhythm of my own breathing settling into them, and the strange comfortable feeling of being a person who has chosen, for a few minutes at least, to do exactly one ordinary thing very well.",
+  "If you watch a fast typist closely, the most striking thing is not the speed of the fingers but the stillness of everything else; the shoulders do not move, the head does not bob, the eyes track gently along the line as if they were reading a book on a Sunday afternoon. The hands look almost lazy, hovering over the keys with a kind of practiced patience, and yet entire sentences appear on the screen between blinks. It is the calmest kind of speed, the sort that does not look like speed at all from the outside, and it is built not by trying harder but by gradually removing every small unnecessary motion until only the necessary ones remain quietly behind.",
+  "The cruel joke of typing practice is that the moment you start paying close attention to your hands they immediately stop knowing what to do; the very effort to control them ruins the effortless thing you were trying to control. Skilled typists learn a strange trick that takes years to trust: they pay attention to the words, not the fingers, and then they let the fingers respond to the words as if the fingers were a separate and very competent small animal that has lived with them for a long time. It feels like giving up control, and that is exactly the point, because the kind of control that helps here is the kind that knows when to step out of the way.",
+  "I used to think a typing test was about proving something, mostly to myself, and so every result felt loaded with meaning it did not actually have to carry; a slow one was a personal insult, a fast one was a small private victory I could not really share with anyone. These days the test feels more like a short meditation: I sit down, I breathe out once, I read the first word, and the next two minutes pass in a small bubble where nothing exists except the screen and the rhythm of the keys. The score, when it appears, is interesting but no longer urgent; it is information, not identity, and that distinction has quietly changed how I feel about doing the test at all.",
+  "One of the small joys of learning to type well is that it teaches you, almost by accident, how to do other things well too; the patience it takes to slow down on a hard word turns out to be the same patience that helps you read a difficult page or have a difficult conversation. The willingness to begin again after a bad test is the same willingness that gets you to the gym on a tired morning or back to a project after a discouraging week. The keyboard becomes a kind of small training ground for the larger habits of attention and recovery that quietly hold the rest of your days together when you are not looking.",
+  "The most useful piece of advice I ever received about typing came from a friend who was not particularly fast but was remarkably steady; she told me that the goal was not to hit the right key, but to be in the right place to hit it, and that almost all errors were really errors of position rather than of speed. I did not understand what she meant for a long time, and then one quiet afternoon, with my hands resting properly on the home row for the first time in months, I felt the difference; the keys seemed to come to my fingers rather than my fingers chasing the keys, and I finally understood that good typing is mostly about waiting in the right place until the right moment arrives.",
+];
+
+const THICC_QUOTES: string[] = [
+  "There is a particular kind of pleasure in becoming quietly competent at something nobody else considers important. Typing is one of those things; almost everyone does it, almost nobody thinks about it, and so the small craft of doing it well lives in a quiet corner of your day where no one will ever congratulate you for the work you put in. You will not be praised at dinner parties for your low error rate, and no one is going to write a recommendation letter about the way your right thumb finds the space bar. And yet over the months and years a strange thing happens; the keyboard stops being a barrier between your thoughts and the screen, and starts being a kind of invisible extension of the way you think. Words appear almost as quickly as you imagine them, and you realise, with a small surprise, that you have built yourself a tiny private superpower out of nothing more than patience and a handful of minutes a day.",
+  "If I could give one piece of advice to a younger version of myself about practicing anything, including typing, it would be this: stop trying to feel like you are improving, and start trying to do the work that improvement actually requires. The feeling of improvement is a slippery and unreliable guide; some of the days that felt like breakthroughs were really just lucky tests on familiar words, and some of the days that felt like failures were quietly laying down the foundations of the next year of progress. The body and the brain do not care whether you are entertained by the process; they care only about whether you have done the repetitions, paid attention while you did them, and given yourself enough sleep and food and kindness to consolidate them overnight. If you can keep showing up for the work without demanding that the work also constantly reward you with the sensation of getting better, you will, very gradually and very reliably, actually get better.",
+  "The first time I broke a hundred words a minute, I expected to feel different, in the way you expect to feel different on a birthday and then quietly do not. What I felt instead was something closer to gratitude; not for the number, but for the long unremarkable string of evenings that had silently led up to it, the dozens of tests I had abandoned in frustration, the hundreds I had finished with mediocre scores I never showed anyone, the slow rebuilding of habits I had picked up wrong as a teenager and stubbornly carried into adulthood. The number on the screen was not really an achievement so much as a receipt, a small printed reminder that all those evenings had actually happened, that the work had been real even when it had felt invisible. And then I closed the tab, made a cup of tea, and went back to doing the same thing I had been doing the day before, because the only honest response to a small milestone is to keep walking past it toward the next one.",
+];
+
+const ALL_QUOTES: string[] = [
+  ...SHORT_QUOTES,
+  ...MEDIUM_QUOTES,
+  ...LONG_QUOTES,
+  ...THICC_QUOTES,
+];
+
+// Avoid repeating the same quote back-to-back per category.
+const recentByCategory: Record<QuoteCategory, string[]> = {
+  all: [],
+  short: [],
+  medium: [],
+  long: [],
+  thicc: [],
+};
+
+function poolFor(category: QuoteCategory): string[] {
+  switch (category) {
+    case "short": return SHORT_QUOTES;
+    case "medium": return MEDIUM_QUOTES;
+    case "long": return LONG_QUOTES;
+    case "thicc": return THICC_QUOTES;
+    default: return ALL_QUOTES;
+  }
+}
+
+export function generateQuote(category: QuoteCategory): { words: string[]; source: string; category: QuoteCategory } {
+  const pool = poolFor(category);
+  const recent = recentByCategory[category];
+  const maxRecent = Math.min(Math.floor(pool.length / 2), 8);
+
+  let pick = pool[Math.floor(Math.random() * pool.length)];
+  let guard = 0;
+  while (recent.includes(pick) && guard++ < 20) {
+    pick = pool[Math.floor(Math.random() * pool.length)];
+  }
+  recent.push(pick);
+  if (recent.length > maxRecent) recent.shift();
+
+  return { words: pick.split(/\s+/), source: pick, category };
 }

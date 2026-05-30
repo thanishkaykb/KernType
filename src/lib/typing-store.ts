@@ -1,8 +1,9 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { generateWords, generateQuote } from "./words";
+import { generateWords, generateQuote, type QuoteCategory } from "./words";
 
 export type Mode = "time" | "words" | "quote";
+export type { QuoteCategory };
 export type CharState = "untyped" | "correct" | "incorrect" | "extra";
 
 export interface WordState {
@@ -29,7 +30,7 @@ export interface Result {
   missedChars: number;
   durationSec: number;
   mode: Mode;
-  amount: number;
+  amount: number | string;
   punctuation: boolean;
   numbers: boolean;
   samples: Sample[];
@@ -40,7 +41,7 @@ interface Settings {
   mode: Mode;
   timeAmount: number;        // seconds
   wordsAmount: number;       // count
-  quoteAmount: number;       // approx words in quote
+  quoteCategory: QuoteCategory; // all|short|medium|long|thicc
   punctuation: boolean;
   numbers: boolean;
   soundEnabled: boolean;
@@ -63,7 +64,7 @@ interface TypingState extends Settings {
   extraTotal: number;
   samples: Sample[];
   result: Result | null;
-  personalBest: { wpm: number; mode: Mode; amount: number } | null;
+  personalBest: { wpm: number; mode: Mode; amount: number | string } | null;
 
   // actions
   setSettings: (s: Partial<Settings>) => void;
@@ -75,9 +76,9 @@ interface TypingState extends Settings {
   finish: () => void;
 }
 
-function buildWords(s: Pick<Settings, "mode" | "timeAmount" | "wordsAmount" | "quoteAmount" | "punctuation" | "numbers">): WordState[] {
+function buildWords(s: Pick<Settings, "mode" | "timeAmount" | "wordsAmount" | "quoteCategory" | "punctuation" | "numbers">): WordState[] {
   if (s.mode === "quote") {
-    const { words } = generateQuote(s.quoteAmount);
+    const { words } = generateQuote(s.quoteCategory);
     return words.map((w) => ({ target: w, typed: "" }));
   }
   // For time mode we generate a generous buffer; we'll extend as user types.
@@ -94,7 +95,7 @@ export const useTyping = create<TypingState>()(
       mode: "time",
       timeAmount: 30,
       wordsAmount: 25,
-      quoteAmount: 15,
+      quoteCategory: "medium" as QuoteCategory,
       punctuation: false,
       numbers: false,
       soundEnabled: false,
@@ -323,7 +324,7 @@ export const useTyping = create<TypingState>()(
           missedChars,
           durationSec: Math.round(elapsed * 10) / 10,
           mode: s.mode,
-          amount: s.mode === "time" ? s.timeAmount : s.mode === "quote" ? s.quoteAmount : s.wordsAmount,
+          amount: s.mode === "time" ? s.timeAmount : s.mode === "quote" ? s.quoteCategory : s.wordsAmount,
           punctuation: s.punctuation,
           numbers: s.numbers,
           samples: s.samples,
@@ -345,7 +346,7 @@ export const useTyping = create<TypingState>()(
         mode: s.mode,
         timeAmount: s.timeAmount,
         wordsAmount: s.wordsAmount,
-        quoteAmount: s.quoteAmount,
+        quoteCategory: s.quoteCategory,
         punctuation: s.punctuation,
         numbers: s.numbers,
         soundEnabled: s.soundEnabled,
