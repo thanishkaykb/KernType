@@ -92,9 +92,6 @@ export function ConfigBar() {
       <Pill active={blind} onClick={() => setSettings({ blindMode: !blind })} title="Blind mode">
         {blind ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
       </Pill>
-      <Pill active={false} onClick={() => {}} title="More">
-        <Sparkles className="w-3.5 h-3.5" />
-      </Pill>
     </div>
   );
 }
