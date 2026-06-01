@@ -1,6 +1,7 @@
 import { useTyping, type Mode, type QuoteCategory } from "@/lib/typing-store";
 import { AtSign, Hash, Eye, EyeOff, Sparkles, Clock, Type, Quote } from "lucide-react";
 
+
 const TIME_OPTIONS = [15, 30, 60, 120];
 const WORD_OPTIONS = [10, 25, 50, 100];
 const QUOTE_OPTIONS: QuoteCategory[] = ["all", "short", "medium", "long", "thicc"];
@@ -91,9 +92,6 @@ export function ConfigBar() {
       <Divider />
       <Pill active={blind} onClick={() => setSettings({ blindMode: !blind })} title="Blind mode">
         {blind ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
-      </Pill>
-      <Pill active={false} onClick={() => {}} title="More">
-        <Sparkles className="w-3.5 h-3.5" />
       </Pill>
     </div>
   );
