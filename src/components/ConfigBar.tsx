@@ -1,6 +1,7 @@
 import { useTyping, type Mode, type QuoteCategory } from "@/lib/typing-store";
 import { AtSign, Hash, Eye, EyeOff, Sparkles, Clock, Type, Quote } from "lucide-react";
 
+
 const TIME_OPTIONS = [15, 30, 60, 120];
 const WORD_OPTIONS = [10, 25, 50, 100];
 const QUOTE_OPTIONS: QuoteCategory[] = ["all", "short", "medium", "long", "thicc"];
